@@ -1,0 +1,26 @@
+terraform { required_version = ">= 0.12, < 0.13" }
+#variable "region" { default = "us-west-2" }
+variable "region" { default = "us-east-2" }
+}
+
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "${data.aws_caller_identity.current.account_id}-tf-states"
+  lifecycle { prevent_destroy = true }
+  server_side_encryption {
+    rule {
+      apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+    }
+  }
+}
+
+resource "aws_dynamodb_table" "tf_locks" {
+  name         = "terraform-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+  type         = "S"
+}
+
+output "account_id" { value = "${data.aws_caller_identity.current.account_id}" }
