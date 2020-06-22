@@ -14,7 +14,7 @@ variable "region" { default = "us-east-2" }
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_s3_bucket" "terraform_state" {
+resource "aws_s3_bucket" "tf_states" {
   bucket = "${data.aws_caller_identity.current.account_id}-tf-states"
   lifecycle { prevent_destroy = true }
   server_side_encryption_configuration {
@@ -34,4 +34,11 @@ resource "aws_dynamodb_table" "tf_locks" {
   }
 }
 
-output "state_bucket" { value = "${data.aws_caller_identity.current.account_id}-tf-states" }
+output "s3_bucket_arn" {
+  value       = aws_s3_bucket.tf_states.arn
+  description = "The ARN of the S3 bucket"
+}
+output "dynamodb_table_name" {
+  value       = aws_dynamodb_table.tf_locks.name
+  description = "The name of the DynamoDB table"
+}
